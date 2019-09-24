@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 /*Function declarations*/
 int get_n();
+void check_command_argument(int no_argument,char **argument_address;);
 float get_mean(float* inputs, int array_size);
 float get_std(float* inputs, int array_size, float mean);
 void display(float* inputs, int array_size, float mean, float std);
@@ -18,40 +20,46 @@ int main(int argc, char *argv[] )
 	y=&argv[0];
     int n, i;
     float *usr_input, mean, std;
-//   if(strcmp(argv[1],"--help")==0){
-//		printf(" Here is the Documentation  ");
-//		exit(1);
-//	}
-	if(argc>1){
-		printf("By command argument\n");
-		char **p_to_arg = &y[1];
-		while(--argc && (*p_to_arg)[0]=='-'){
-			if((*p_to_arg)[1]=='\0'){
-				printf("Invalid option \n");
-				exit(1);
-			}
-			switch((*p_to_arg)[1]){
-				case 'n' : p_to_arg++;
-						   n =atoi(*p_to_arg);					// Convert Character String to Integer [stdlib.h]
-						   break;
-				default	 :	printf("Invalid option \n");
-							exit(1);
-			}
-			if(n>0){
-				if(x!=n+3){
-					printf("Didn't input the correct number of data!\n");
-					exit(1); 
-				}
-				break;
-			}
-		}
-		}	
-	else
-	{	
-		printf("By programm input\n");
-		n = get_n(); //Get size of input for user
+    
+    if(argc>1){
+   		check_command_argument(argc,&argv[1]);
 	}
 	
+	if(argc>1)
+	{
+		char **p_to_arg = &y[1];
+	
+		switch((*p_to_arg)[1])
+		{
+			case 'n' : printf("By command argument\n");
+					   p_to_arg++;
+					   n =atoi(*p_to_arg);					// Convert Character String to Integer [stdlib.h]
+					   if(n<=0)
+					   {
+						printf("You entered a negative value. Please enter a value more than 0.\n");  
+						exit(1);
+					   }
+					   else
+					   {
+					   		if(x!=n+3)
+							{
+								printf("Didn't input the correct number of data!\n");
+								exit(1); 
+							}
+							else
+							{
+							 	printf("n----- %d\n",n);
+				   				break;
+							}
+					   	}
+			case 'a' : printf("By programm input\n");
+					   n = get_n(); //Get size of input for user 
+					   break;
+			default	 : printf("Invalid option \n");
+					   exit(1);
+		}
+	}
+		
     if((usr_input=(float*)malloc(n*sizeof(float))) == NULL){ //Memory allocation
         printf("Not enough memory. Use a smaller data size.");
     }
@@ -83,12 +91,80 @@ int main(int argc, char *argv[] )
     std = get_std(usr_input, n, mean);
     display(usr_input, n, mean, std);
     free(usr_input); //Clear malloc
-
     //printf("%f", std);
-    
-
 }
+void check_command_argument(int no_argument,char **argument_address)
+{
+	printf("checking argument\n");
+	if(no_argument>1)
+	{
+	   if(strcmp((*argument_address),"--help")==0)
+	   {
+			printf("--- Here is the Documentation ---");
+			printf("-n {number of input} {first_number} {second_number} .... {n_number}.\n");
+			printf("-a user_input.\n"); 
+			exit(1);
+		}
+		while(--no_argument && (*argument_address)[0]=='-')								// This while loop is to check whether has invalid arguments exist, such as -na -na -abc -3
+		{
+			if((*argument_address)[1]=='\0')
+			{
+				printf("Input - without option. Expected -n/-a argument pass in via command line.\n");
+				exit(1);
+			}
+			else
+			{
+				if((*argument_address)[1]=='n' || (*argument_address)[1]=='a')
+				{
+					if((*argument_address)[2]=='\0')
+					{
+						printf("Valid optionnnn.\n");
+						break;
+					}
+					else{
+						printf("Invalid optionnnn.\n");
+						exit(1);
+					}
+				}
+			}
+			argument_address++;															// if assume option as first argument, then no need iterate the whole argv[]
+		}
 
+		if(strcmp((*argument_address),"-n")==0)
+		{
+			argument_address++;	
+			int int_input;
+			float flt_input; 
+			int counter_1,counter_2=0, interation=no_argument-1;
+			for(counter_1=0;counter_1<interation;counter_1++)
+			{
+				printf("Counter_1 %d.\n",counter_1);
+				if(counter_1 ==0){
+					while(isdigit((*argument_address)[counter_2])){
+					counter_2 ++;
+				}
+				}
+				if(counter_1>0){
+				while(isdigit((*argument_address)[counter_2]) || (*argument_address)[counter_2] ==46){
+//					printf("Interating Float is %c \n",(*argument_address)[counter_2]);
+					counter_2 ++;
+				}
+				}
+//				printf("In buffer is %c \n",(*argument_address)[counter_2]);
+				if(((*argument_address)[counter_2])=='\0'){
+					printf("Fantastic Amazing Input a correct value for me. Make easy life for a programmer.\n");
+				}
+				else{
+					printf("Integer or Flot, bro.\n");
+					exit(1);
+				}
+				counter_2=0;
+				argument_address++;	
+
+			}
+		}
+	}
+}
 int get_n()
 {
     /*Macro to get size of input from user*/
